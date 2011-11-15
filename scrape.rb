@@ -1,34 +1,22 @@
 require 'rubygems'
 require 'bundler'
+require 'realtor'
 
 Bundler.require(:default) if defined?(Bundler)
 
-SiteLayout = {
-  :url => 'www.realtor.com',
-  :path => '/realestateandhomes-search?mlslid=', 
-  :navigation => [ {:link => '#propertyList .resultsItem .itemHeader .wrap a.primaryAction', :list => true}],
-  :definition => {
-    :description => ['div#PropertyDetails input#PropDetDescAll',["attr", 'value']],
-    :address => ['.summary #address h1', ['text']],
-    :price   => ['.summary .price', ['text']],
-    :beds    => ['.summary .beds-baths-sqft-acres .beds', ['text']],
-    :baths   =>  ['.summary .beds-baths-sqft-acres .baths', ['text']],
-    :area   =>  ['.summary .beds-baths-sqft-acres .sqft', ['text']],
-    :acres   =>  ['.summary .beds-baths-sqft-acres .acres', ['text']]
-  }
-}
-
 class Scrape
-  def initialize
-    @navigation = SiteLayout[:navigation]
-    @definition = SiteLayout[:definition]
-    @path = SiteLayout[:path]
-    @site = '%s://%s' % [SiteLayout[:protocol] || 'http', SiteLayout[:url]] 
+  def initialize(layout)
+    @layout = layout
+    @navigation = layout.navigation 
+    @definition = layout.definition 
+    @path = layout.path
+    @site = '%s://%s' % [layout.protocol, layout.url] 
   end
 
   def url(path, query='')
     "%s%s%s" % [@site, path, query]
   end
+  
   def navigate(mls)
     response = RestClient.get url(@path, mls)
     doc = Nokogiri::HTML response.body
@@ -42,10 +30,15 @@ class Scrape
     end
   end
 
-
   def extract_definition(doc)
     @definition.each do |k, v|
-      p "%s: %s" % [k.to_s, doc.css(v[0]).send(*v[1])]
+      begin
+        p "%s: %s" % [k.to_s, @layout.send(v[1], doc.css(v[0]))]
+
+      rescue Exception => e
+        # maybe should send an email here!!!
+        p [k, v, e.message]
+      end
     end
   end
 
@@ -62,8 +55,8 @@ class Scrape
   end
 end
 
-scraper = Scrape.new 
-scraper.extract('11678750')
+scraper = Scrape.new (Realtor.new)
+scraper.extract('11521567')
 
 __END__
 http://www.realtor.com/realestateandhomes-search?mlslid=11678750
