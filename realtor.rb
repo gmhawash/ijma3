@@ -4,8 +4,14 @@ class Realtor < SiteLayout
     super
     @special_fields = {
       :price            => {:matcher => %r(^price$)i},
+      :property_features => {:processor => 'html'}
     }
-    @general_fields = [:beds, :baths, :house_size, :lot_size, :property_type, :year_built, :style, :stories]
+    @general_fields = [
+      :beds, :baths, :house_size, :lot_size, :property_type, :year_built, :style, :stories,
+      :fireplace_features, :heating_features, :exterior_construction, :roofing, 
+      :interior_features, :exterior_features, :last_refreshed, :mls_id, :listing_brokered_by,
+      :garage, :property_features
+    ]
   end
 
   def url
@@ -29,7 +35,7 @@ class Realtor < SiteLayout
   def add(th, td)
     map.each do |k,v|    
       if th =~ v[:matcher]
-        @data[k] =  td.text.strip
+        @data[k] = (v[:processor] ? send(v[:processor], td) : td.text).gsub(/\s+/, ' ').strip
       end
     end
   end
@@ -42,7 +48,10 @@ class Realtor < SiteLayout
         add(th.text, th.next) 
       end
     end
-    p @data
+    @data.each do |k,v|
+      p [k, v]
+    end
+    nil
   end
 end
 

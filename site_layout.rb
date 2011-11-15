@@ -18,12 +18,17 @@ class SiteLayout
     node.attr('value')
   end
 
+  def html(node)
+    node.to_html
+  end
+
   def map
     return @hash if @hash
 
     @hash = @special_fields
     @general_fields.each do |key|
-      @hash[key] = {:matcher => %r(#{key.to_s.sub('_', '\s*')})i }
+      @hash[key] ||= {}
+      @hash[key][:matcher] = %r(#{key.to_s.sub('_', '\s*')})i 
     end
     @hash
   end
