@@ -29,6 +29,7 @@ class Realtor < SiteLayout
   def definition
     {
     :property_details => ['div#PropertyDetails table tr', 'property_details'],
+    :property_photos  => ['script', 'property_photos'],
     }
   end
 
@@ -52,6 +53,25 @@ class Realtor < SiteLayout
       p [k, v]
     end
     nil
+  end
+
+  def extract_photo_urls(node)
+    node = node.to_s
+    first = 0
+    while(first = node.index(/file_url/, first)) do
+      last = node.index(',', first) 
+      node[first..last] =~ /file_url.*:\"(.*)\"/
+      yield $1.gsub('\\','') 
+      first = last
+    end
+  end
+
+  def property_photos(nodes)
+    nodes.each do |node|
+      extract_photo_urls(node) do |url|
+        @photos << url
+      end
+    end
   end
 end
 

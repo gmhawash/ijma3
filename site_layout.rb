@@ -3,6 +3,7 @@ class SiteLayout
 
   def initialize
     @data = {}
+    @photos  = []
     @general_fields = []
   end
 

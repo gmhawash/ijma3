@@ -58,5 +58,10 @@ end
 scraper = Scrape.new (Realtor.new)
 scraper.extract('11521567')
 
+response = RestClient.get 'http://p.rdcpix.com/v01/l69ad7343-m0m.jpg'
+File.open('test.jpg', 'wb') do |file|
+  file.write(response.body)
+end
+
 __END__
 http://www.realtor.com/realestateandhomes-search?mlslid=11678750
